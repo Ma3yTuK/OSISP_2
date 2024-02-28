@@ -29,7 +29,7 @@ PREFIX_PATTERN="^[0-9]\{$LENGTH\}\."
 
 
 function getFileNames {
-	fileNames=($(ls -p | grep -v /))
+	readarray -t fileNames < <(ls -p | grep -v /)
 }
 
 
@@ -44,27 +44,27 @@ function fillFiles {
 
 	fileSortingProperties=()
 
-	local fileName
-	for fileName in ${fileNames[@]}
+	local index
+	for index in ${!fileNames[@]}
 	do
 		case $sortingType in
 			$P_SORT_BY_NAME)
-				fileSortingProperties+=("$fileName")
+				fileSortingProperties+=("${fileNames[index]}")
 			;;
 			$P_SORT_BY_SIZE)
-				fileSortingProperties+=($($COMMAND "$fileName" | awk "{print \$$FILE_SIZE_INDEX }"))
+				fileSortingProperties+=($($COMMAND "${fileNames[index]}" | awk "{print \$$FILE_SIZE_INDEX }"))
 			;;
 			$P_SORT_BY_WIDTH)
 				fileSortingProperties+=(${#fileName})
 			;;
 			$P_SORT_BY_CREATION_TIME)
-				fileSortingProperties+=($($COMMAND --time=birth "$fileName" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
+				fileSortingProperties+=($($COMMAND --time=birth "${fileNames[index]}" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
 			;;
 			$P_SORT_BY_MODIFICATION_TIME)
-				fileSortingProperties+=($($COMMAND --time=mtime "$fileName" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
+				fileSortingProperties+=($($COMMAND --time=mtime "${fileNames[index]}" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
 			;;
 			$P_SORT_BY_ACCESS_TIME)
-				fileSortingProperties+=($($COMMAND --time=atime "$fileName" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
+				fileSortingProperties+=($($COMMAND --time=atime "${fileNames[index]}" | awk "{print \$$FILE_DATE_INDEX\$$FILE_TIME_INDEX }"))
 			;;
 			$P_SORT_BY_RAND)
 				fileSortingProperties+=($RANDOM)
@@ -141,10 +141,11 @@ function sortFiles {
 
 
 function removePrefix {
-	local fileName
-	for fileName in ${fileNames[@]}
+	local index
+	for index in ${!fileNames[@]}
 	do
-		mv "$fileName" $(echo "$fileName" | sed "s/$PREFIX_PATTERN//") &> /dev/null
+		local normalName=$(echo "${fileNames[index]}" | sed "s/$PREFIX_PATTERN//")	
+		mv "${fileNames[index]}" "$normalName" &> /dev/null
 	done
 }
 
@@ -163,11 +164,11 @@ function assignPrefix {
 		incrementor=-1
 	fi
 
-	local fileName
-	for fileName in ${fileNames[@]}
+	local index
+	for index in ${!fileNames[@]}
 	do
 		local prefix=$(printf "%0${LENGTH}d" "$value")
-		mv "$fileName" "$prefix.$fileName"
+		mv "${fileNames[index]}" "$prefix.${fileNames[index]}"
 		value=$((value + incrementor))
 	done
 }
