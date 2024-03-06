@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "des.h"
 
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
 
     FILE* file;
     if (argc == 3)
-        file = fopen(argv[2], "w");
+        file = fopen(argv[2], "r");
     else
         file = stdin;
 
@@ -57,11 +58,11 @@ int main(int argc, char *argv[])
     {
         process(buffer, subkey_buffer, encrypted_buffer);
         fwrite(encrypted_buffer, character_size, value_size_in_bytes / character_size, stdout);
+        fflush(stdout);
     }
 
     if (read_count)
     {
-        printf("%d", read_count);
         for (int i = read_count * character_size; i < value_size_in_bytes; i++)
         {
             buffer[i] = 0;
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
 
         process(buffer, subkey_buffer, encrypted_buffer);
         fwrite(encrypted_buffer, character_size, value_size_in_bytes / character_size, stdout);
+        fflush(stdout);
     }
 
     for (int i = 0; i < round_count; i++)
@@ -76,6 +78,8 @@ int main(int argc, char *argv[])
         free(subkey_buffer[i]);
     }
     free(subkey_buffer);
+
+    fclose(file);
 
     return 0;
 }
