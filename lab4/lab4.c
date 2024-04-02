@@ -16,6 +16,12 @@ void handler(int signal)
             printf("\n%s %d\n", "New pid:", pid);
             exit(0);
         }
+        
+        struct sigaction sa;
+        sa.sa_handler = handler;
+        sa.sa_mask = set;
+
+        sigaction(SIGINT, &sa, 0);
     }
 }
 
