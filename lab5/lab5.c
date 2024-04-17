@@ -4,6 +4,7 @@
 #include <time.h>
 #include <memory.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 
 typedef int BOOL;
@@ -12,7 +13,7 @@ typedef int BOOL;
 #define FALSE 0;
 
 
-const int number_of_threads = 1;
+int number_of_threads = 1;
 int* ARR;
 
 
@@ -97,13 +98,24 @@ void gen_array(int* arr, int size)
 
 int main(int argc, char** argv) {
     srand(time(NULL));
-    const int arr_size = 100000000;
+    int arr_size = 100000000;
+
+    printf("Array size: ");
+    scanf("%d", &arr_size);
+    printf("Num of threads: ");
+    scanf("%d", &number_of_threads);
+
     int* arr = (int*)malloc(arr_size * sizeof(int));
     ARR = arr;
 
     gen_array(arr, arr_size);
 
+    struct timeval  tv1, tv2;
+    gettimeofday(&tv1, NULL);
     sort(&(struct call_args){arr, arr_size, 0});
+    gettimeofday(&tv2, NULL);
+
+    printf ("Total time = %f seconds\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
     
     free(arr);
 
